@@ -46,8 +46,8 @@ const OrderCard = ({
           <Text style={styles.name}>{name}</Text>
         </View>
         <View style={styles.orderNumberContainer}>
-          <Text style={styles.orderLabel}>Order #</Text>
-          <Text style={styles.orderNumber}>{orderNumber}</Text>
+          <Text style={styles.orderLabel}>Order #<Text style={styles.orderNumber}>{orderNumber}</Text></Text>
+         
         </View>
       </View>
 

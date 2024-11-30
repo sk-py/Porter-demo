@@ -127,11 +127,11 @@
 
 // export default MapScreen;
 
-import { View } from "react-native";
+import { Alert, Dimensions, Text, View } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
 import socket from "@/utils/socket";
-import { useGlobalSearchParams } from "expo-router";
+import { router, useGlobalSearchParams } from "expo-router";
 
 const MapScreen = () => {
   const [markerCoords, setMarkerCoords] = useState(null);
@@ -155,33 +155,71 @@ const MapScreen = () => {
 
     // Listen for specific porter's coordinates
     socket.on("porterCoords", ({ username, coords }) => {
-      console.log(`Coordinates for ${username}:`, coords);
+      console.log(`Coordinates for ${username}:`, coords, "Params:", params);
       // Update marker coordinates
       if (params.username == username) {
         setMarkerCoords(coords);
-      }
 
-      // Adjust the map view to center on the new coordinates
-      if (mapRef.current) {
-        mapRef.current.animateToRegion(
-          {
-            latitude: coords.coords.latitude,
-            longitude: coords.coords.longitude,
-            latitudeDelta: 0.005, // Adjust as needed for zoom level
-            longitudeDelta: 0.005, // Adjust as needed for zoom level
-          },
-          1000 // Animation duration in milliseconds
-        );
+        // Adjust the map view to center on the new coordinates
+        if (mapRef.current) {
+          mapRef.current.animateToRegion(
+            {
+              latitude: coords.coords.latitude,
+              longitude: coords.coords.longitude,
+              latitudeDelta: 0.005, // Adjust as needed for zoom level
+              longitudeDelta: 0.005, // Adjust as needed for zoom level
+            },
+            1000 // Animation duration in milliseconds
+          );
+        }
+      }
+    });
+
+    socket.on("activePorters", (data: []) => {
+      if (!data.includes(params.username)) {
+        setMarkerCoords(null);
+        Alert.alert("", `${params.username} logged out!`, [
+          { text: "OK", onPress: () => router.replace("/(protected)/Admin") },
+        ]);
       }
     });
 
     return () => {
       socket.off("porterCoords"); // Clean up listener on unmount
+      socket.off("activePorters");
     };
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View
+      style={{
+        flex: 1,
+        position: "relative",
+        width: Dimensions.get("window").width,
+      }}
+    >
+      <View
+        style={{
+          position: "absolute",
+          bottom: 5,
+          zIndex: 5,
+          backgroundColor: "#FFFFFF",
+          width: "90%",
+          marginHorizontal: "5%",
+          padding: 8,
+          borderRadius: 8,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+        }}
+      >
+        <Text style={{ fontSize: 20 }}>Porter name: {params.username}</Text>
+      </View>
       {initial && (
         <MapView
           ref={mapRef} // Set ref for MapView

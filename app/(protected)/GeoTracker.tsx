@@ -41,7 +41,7 @@ export default function GeoTracker() {
     const { remove } = await Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.BestForNavigation,
-        distanceInterval: 1,
+        distanceInterval: 50,
       },
       (location) => {
         setCoords(location);
